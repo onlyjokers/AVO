@@ -69,6 +69,8 @@ Paths in each manifest are relative to that manifest's directory. Absolute paths
 
 ## Verification
 
+完整的真实 Provider、单任务、AVO 闭环和三方法实验步骤见 [测试指南](docs/testing.md)。
+
 ```bash
 pnpm typecheck
 pnpm test
@@ -76,10 +78,13 @@ pnpm build
 pnpm test:e2e
 ```
 
-The browser test uses the fake stack. A Codex/MCP-only smoke that keeps image generation and Qwen fake is available with:
+The browser test uses the fake stack. A Codex/MCP-only smoke that keeps image generation and Qwen Verifier fake is available with:
 
 ```bash
-pnpm --filter @avo/api exec tsx scripts/codex-mcp-smoke.ts
+set -a
+source .env
+set +a
+pnpm --filter @avo/api test:codex
 ```
 
 ## Attribution
