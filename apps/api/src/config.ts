@@ -1,4 +1,5 @@
-import { resolve } from "node:path";
+import { isAbsolute, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { z } from "zod";
 
 const booleanFromString = z.preprocess((value) => value === "true" || value === true, z.boolean());
@@ -31,11 +32,12 @@ export type AppConfig = ReturnType<typeof loadConfig>;
 
 export const loadConfig = (input: NodeJS.ProcessEnv = process.env) => {
   const parsed = envSchema.parse(input);
+  const root = resolve(fileURLToPath(new URL("../../..", import.meta.url)));
   return {
     ...parsed,
     AVO_CODEX_PROVIDER_BASE_URL: parsed.AVO_CODEX_PROVIDER_BASE_URL ?? parsed.QWEN_BASE_URL,
     AVO_CODEX_PROVIDER_API_KEY: parsed.AVO_CODEX_PROVIDER_API_KEY ?? parsed.QWEN_API_KEY,
-    AVO_DATA_DIR: resolve(parsed.AVO_DATA_DIR),
-    AVO_ROOT: resolve(new URL("../../..", import.meta.url).pathname),
+    AVO_DATA_DIR: isAbsolute(parsed.AVO_DATA_DIR) ? parsed.AVO_DATA_DIR : resolve(root, parsed.AVO_DATA_DIR),
+    AVO_ROOT: root,
   };
 };

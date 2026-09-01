@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import test from "node:test";
 import {
   ArtifactStore,
@@ -262,4 +263,11 @@ test("Codex Harness accepts only form elicitations from the controlled AVO MCP",
     action: "decline",
     content: null,
   });
+});
+
+test("relative data paths resolve from the AVO workspace root", () => {
+  const config = loadConfig({ AVO_DATA_DIR: "./data", AVO_PROVIDER_MODE: "fake" });
+  const root = resolve(fileURLToPath(new URL("../../..", import.meta.url)));
+  assert.equal(config.AVO_ROOT, root);
+  assert.equal(config.AVO_DATA_DIR, join(root, "data"));
 });
