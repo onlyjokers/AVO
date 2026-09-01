@@ -1,0 +1,23 @@
+{
+  "name": "avo-image-editing-mvp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.33.0",
+  "scripts": {
+    "dev": "concurrently -n api,web -c cyan,magenta \"pnpm --filter @avo/api dev\" \"pnpm --filter @avo/web dev\"",
+    "build": "pnpm -r --if-present build",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present test",
+    "test:e2e": "playwright test",
+    "check": "pnpm typecheck && pnpm test && pnpm build"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "@types/node": "^24.3.0",
+    "concurrently": "^9.2.1",
+    "tsx": "^4.20.5",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.2"
+  }
+}
