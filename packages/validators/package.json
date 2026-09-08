@@ -1,0 +1,16 @@
+{
+  "name": "@avo/validators",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test test/**/*.test.ts"
+  },
+  "dependencies": {
+    "@avo/contracts": "workspace:*",
+    "sharp": "^0.34.5"
+  }
+}

@@ -10,14 +10,21 @@
     "typecheck": "pnpm -r --if-present typecheck",
     "test": "pnpm -r --if-present test",
     "test:e2e": "playwright test",
+    "avo:repair-runs": "pnpm --filter @avo/api exec tsx scripts/repair-runs.ts",
+    "avo:blobs:audit": "pnpm --filter @avo/api exec tsx scripts/audit-blobs.ts",
+    "avo:blobs:repair": "pnpm --filter @avo/api exec tsx scripts/audit-blobs.ts --apply",
+    "avo:svg:setup": "pnpm --filter @avo/api exec tsx scripts/setup-svg-mcp.ts",
+    "avo:ablation": "pnpm --filter @avo/api exec tsx scripts/run-ablation.ts",
+    "avo:ablation:review": "pnpm --filter @avo/api exec tsx scripts/review-ablation.ts",
     "check": "pnpm typecheck && pnpm test && pnpm build"
   },
   "devDependencies": {
+    "@openai/codex": "0.153.4",
     "@playwright/test": "^1.55.0",
     "@types/node": "^24.3.0",
     "concurrently": "^9.2.1",
-    "tsx": "^4.20.5",
     "tsup": "^8.5.0",
+    "tsx": "^4.20.5",
     "typescript": "^5.9.2"
   }
 }

@@ -26,6 +26,7 @@ export class BenchmarkRunner {
     private readonly store: FileStateStore,
     private readonly runner: AvoRunner,
     private readonly runDefaults: Partial<ReturnType<typeof runConfigSchema.parse>> = {},
+    private readonly concurrency = 3,
   ) {}
 
   async create(taskIds: string[]) {
@@ -57,21 +58,27 @@ export class BenchmarkRunner {
     let benchmark = await this.store.getBenchmark(id);
     benchmark = await this.store.saveBenchmark({ ...benchmark, status: "running", updated_at: now() });
     try {
+      const scheduledRuns: Array<{ taskId: string; runId: string }> = [];
       for (const item of benchmark.schedule) {
         const config = runConfigSchema.parse({
           mode: item.mode,
           max_generations: item.mode === "one_shot" ? 1 : 24,
-          max_generations_per_round: item.mode === "best_of_n" ? 1 : 2,
+          max_generations_per_round: 24,
           ...this.runDefaults,
         });
         const run = await this.runner.createRun(item.task_id, config);
-        benchmark = await this.store.saveBenchmark({
-          ...benchmark,
-          run_ids: [...benchmark.run_ids, run.id],
-          updated_at: now(),
-        });
-        await this.runner.start(run.id);
+        scheduledRuns.push({ taskId: item.task_id, runId: run.id });
       }
+      benchmark = await this.store.saveBenchmark({
+        ...benchmark,
+        run_ids: scheduledRuns.map((item) => item.runId),
+        updated_at: now(),
+      });
+      const taskQueues = [...new Set(benchmark.task_ids)].map((taskId) =>
+        scheduledRuns.filter((item) => item.taskId === taskId));
+      await runWithConcurrency(taskQueues, this.concurrency, async (queue) => {
+        for (const item of queue) await this.runner.start(item.runId);
+      });
       await this.store.saveBenchmark({ ...benchmark, status: "completed", updated_at: now() });
     } catch (error) {
       await this.store.saveBenchmark({ ...benchmark, status: "failed", updated_at: now() });
@@ -83,32 +90,46 @@ export class BenchmarkRunner {
     const runs = await Promise.all(benchmark.run_ids.map((id) => this.store.getRun(id)));
     const eventsByRun = await Promise.all(runs.map((run) => this.store.listRunEvents(run.id)));
     const rows = runs.map((run, runIndex) => {
-      const generationEvents = eventsByRun[runIndex]!.filter((event) => event.type === "generation.completed");
-      const generationOrder = new Map(generationEvents.map((event, index) => [event.data.artifact_id, index + 1]));
+      const generationEvents = eventsByRun[runIndex]!.filter((event) =>
+        event.type === "generation.completed" || event.type === "draft.generated" || event.type === "draft.rejected_preverify");
+      const generationOrder = new Map(generationEvents.map((event, index) => {
+        const draft = event.data.draft as { artifact_id?: string } | undefined;
+        return [draft?.artifact_id ?? event.data.artifact_id, index + 1];
+      }));
+      const acceptedNodes = run.lineage_nodes.filter((node) => node.kind === "commit");
       const firstPassGeneration = Math.min(
         Number.POSITIVE_INFINITY,
-        ...run.attempts
-          .filter((attempt) => attempt.status === "passed")
-          .map((attempt) => generationOrder.get(attempt.generated_artifact_id) ?? Number.POSITIVE_INFINITY),
+        ...acceptedNodes.map((node) => generationOrder.get(node.artifact_id) ?? Number.POSITIVE_INFINITY),
       );
       const generationUsages = generationEvents.flatMap((event) => {
-        const parsed = usageSchema.safeParse(event.data.usage);
+        const draft = event.data.draft as { usage?: unknown } | undefined;
+        const parsed = usageSchema.safeParse(draft?.usage ?? event.data.usage);
         return parsed.success ? [parsed.data] : [];
       });
-      const verifierUsages = run.attempts.flatMap((attempt) => attempt.verification?.usage ? [attempt.verification.usage] : []);
+      const verifierUsages = [
+        ...run.comparative_decisions.flatMap((decision) => decision.usage ? [decision.usage] : []),
+        ...run.final_verifier_decisions.flatMap((decision) => decision.usage ? [decision.usage] : []),
+      ];
       const usage = sumUsage([...generationUsages, ...verifierUsages]);
       const totalLatencyMs = generationEvents.reduce(
-        (sum, event) => sum + numeric(event.data.latency_ms),
-        run.attempts.reduce((sum, attempt) => sum + (attempt.verification?.latency_ms ?? 0), 0),
+        (sum, event) => sum + numeric((event.data.draft as { latency_ms?: unknown } | undefined)?.latency_ms ?? event.data.latency_ms),
+        run.comparative_decisions.reduce((sum, decision) => sum + decision.latency_ms, 0)
+          + run.final_verifier_decisions.reduce((sum, decision) => sum + decision.latency_ms, 0),
       );
+      const finalDecision = run.final_verifier_decision_id
+        ? run.final_verifier_decisions.find((decision) => decision.id === run.final_verifier_decision_id)
+        : undefined;
+      const finalNode = finalDecision
+        ? run.lineage_nodes.find((node) => node.id === finalDecision.selected_node_id)
+        : undefined;
       const prefixCurve = Array.from({ length: 24 }, (_, index) => {
         const budget = index + 1;
-        const eligibleAttempts = run.attempts.filter((attempt) =>
-          (generationOrder.get(attempt.generated_artifact_id) ?? Number.POSITIVE_INFINITY) <= budget);
+        const acceptedWithinBudget = acceptedNodes.filter((node) =>
+          (generationOrder.get(node.artifact_id) ?? Number.POSITIVE_INFINITY) <= budget);
         return {
           budget,
           passed: firstPassGeneration <= budget,
-          best_score: Math.max(-1, ...eligibleAttempts.map((attempt) => attempt.verification?.overall_score ?? -1)),
+          best_score: acceptedWithinBudget.length > 0 ? Math.round((finalDecision?.confidence ?? 0) * 100) : -1,
         };
       });
       return {
@@ -116,10 +137,12 @@ export class BenchmarkRunner {
         task_id: run.task_id,
         mode: run.config.mode,
         status: run.status,
-        passed: run.lineage_attempt_ids.length > 0,
+        passed: Boolean(finalDecision && finalNode && (finalNode.version ?? 0) > 0),
         generation_count: run.generation_count,
         verifier_count: run.verifier_count,
-        best_score: Math.max(-1, ...run.attempts.map((attempt) => attempt.verification?.overall_score ?? -1)),
+        best_score: finalDecision ? Math.round(finalDecision.confidence * 100) : -1,
+        final_version: finalNode?.version ?? 0,
+        final_node_id: finalNode?.id ?? null,
         first_pass_generation: Number.isFinite(firstPassGeneration) ? firstPassGeneration : null,
         total_latency_ms: totalLatencyMs,
         usage,
@@ -158,6 +181,25 @@ export class BenchmarkRunner {
     };
   }
 }
+
+const runWithConcurrency = async <T>(items: T[], concurrency: number, operation: (item: T) => Promise<void>) => {
+  let cursor = 0;
+  const errors: unknown[] = [];
+  const workers = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
+    while (true) {
+      const index = cursor;
+      cursor += 1;
+      if (index >= items.length) return;
+      try {
+        await operation(items[index]!);
+      } catch (error) {
+        errors.push(error);
+      }
+    }
+  });
+  await Promise.all(workers);
+  if (errors.length > 0) throw errors[0];
+};
 
 const numeric = (value: unknown) => typeof value === "number" && Number.isFinite(value) ? value : 0;
 

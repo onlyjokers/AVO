@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "node --import tsx --watch-preserve-output --watch src/index.ts",
     "mcp": "tsx src/mcp-server.ts",
     "build": "tsup src/index.ts src/mcp-server.ts --format esm --clean --sourcemap",
     "start": "node dist/index.js",
@@ -20,6 +20,8 @@
     "@modelcontextprotocol/sdk": "^1.17.4",
     "dotenv": "^17.2.1",
     "fastify": "^5.5.0",
+    "sharp": "^0.34.5",
+    "undici": "^7.29.1",
     "zod": "^3.25.76"
   }
 }

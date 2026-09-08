@@ -27,7 +27,7 @@ pnpm dev
 6. 创建任务后先选择 `One-shot`。
 7. 在运行页等待状态结束，检查原图/候选对比、Prompt、生成输入、Qwen 分项和时间线。
 
-推荐使用正常照片或至少几 KB 的测试图。当前内网图片网关会错误处理极小且高度可压缩的纯色 PNG；AVO 会将其报告为 `image_provider_compact_image_gateway_bug` 并停止重试。
+推荐使用正常照片或至少几 KB 的测试图。一次 Agent `avo_generate_image` 最多在 Provider adapter 内执行 5 次提交，每次等待 120 秒并使用不同的 `client_task_id`。前四次超时不会返回 Main Agent，也不会生成 Draft 或 Memory 经验；任一次成功即返回，五次失败后才返回聚合错误。每次 Provider 尝试仍写入 Controller 技术审计，以便核对请求与费用。
 
 建议需求写法：
 
@@ -42,20 +42,30 @@ pnpm dev
 
 One-shot 成功后，在同一个任务中选择 `AVO 多轮闭环`：
 
-- 每轮 Main Agent 可以查看原图、参考图、历史候选和上一轮 Qwen 反馈。
-- Qwen 返回有效 `PASS` 后立即停止。
-- 最多调用 24 次图片生成。
-- 连续三次 `FAIL` 后会运行一次只读 Supervisor。
-- `FAIL` 候选保留在 trajectory，不进入成功 lineage。
+- 每个 Agent Invocation 启动一个新的 Codex thread，内部是一条不划分固定阶段的自主 Variation Attempt。
+- 同一 Invocation 只创建一个持续的 `turn/start`；Agent 在其中顺序调用工具，Controller 不会在每个动作后 interrupt。
+- 15 分钟进入柔性收尾，或剩余时间不足一次 P95 生成、评价和 60 秒决策时停止新生成；20 分钟硬截止只关闭当前 Attempt 并继续 Run。
+- 内部 Codex Provider 代理固定使用低推理、`parallel_tool_calls=false`、8192 输出上限和 DashScope 会话缓存，并逐块转发 Responses SSE。
+- Agent 查看的是最长边 1024 的分析预览；生成、Verifier 与 UI 继续使用 Provider 原始图片。
+- Main Agent 可以自主选择父代、编写 Prompt，并反复执行生成、查看、评价和修订。
+- 每个 Invocation 无条件形成一条 `VariationAttemptRecord`；最终可提交一个 Verifier 推荐 Commit 的候选，或用 `avo_abandon_attempt` 记录测得的失败方向。
+- submit/abandon 同时携带下一版 Memory，避免在关闭前单独写 Memory 失败。
+- Agentic Verifier 在每次 Invocation 开始时从人类 Brief、公开/隐藏媒体和私有说明推导固定评价框架；同一 Invocation 内所有候选使用同一 revision。
+- 每次评价都是 Candidate 与正式 incumbent 的 A/B 比较。只有技术门禁通过、Verifier 判定严格 `better` 且推荐 Commit 的候选进入单 Lineage `x(t+1)`。
+- `equivalent`、`worse`、`uncertain` 和未提交候选只进入 Search Archive；绝对分数和 Pareto 都不能决定 Commit 或 Final。
+- 最多调用 24 次图片生成、运行 90 分钟或执行 40 个 Agent Invocation。
+- 每次评价后由确定性 Monitor 检查高价值异常，命中时才调用 Supervisor；连续 3 个 Attempt 没有新正式版本时在边界介入。Supervisor 只能管理搜索策略或返回 `stop_search`，Final 由终局 Verifier 选择。
 
-运行页可检查：
+运行页默认以 Evolution 为主视图，可检查：
 
-- 当前候选与原图对比。
+- 正式版本序列 `x0 → x1 → ...`、版本间的 Attempt、Draft、比较结论和真实 Parent 连线。
+- 任意历史 Draft 与 Parent/Source 的大图对比，以及公开 Reference。
 - `generation_count / max_generations` 预算。
-- 每个 Attempt 的 Observation、Hypothesis、Intervention。
+- 每个 Attempt 的 Observation、Hypothesis、Intervention、结束原因和 Memory Diff。
 - Prompt 变化、生成输入和 usage。
-- Qwen 的逐条需求判定、分数和证据。
-- PASS 候选是否标记为 `Lineage`。
+- Qwen 的 Candidate-vs-incumbent 结论、目标进展、置信度、动态评价轴和证据。
+- 候选是否被 Verifier 接受为正式 `x(t+1)`，或仅进入 Search Archive。
+- Supervisor 决策或结构化调用失败；原始 Agent 日志位于底部抽屉。
 
 运行中可以点击“停止”。停止、失败或进程中断的 run 可在页面中点击“恢复”；已成功完成的 Provider 调用不会因恢复而自动重放。
 
@@ -96,9 +106,10 @@ task-01/
 1. 准备 5-10 个代表真实工作的任务。
 2. 打开“实验”。
 3. 选择任务并点击“启动三方法实验”。
-4. 等待 `one_shot`、`best_of_n` 和 `avo` 全部结束。
-5. 检查 PASS 数、首次 PASS 所需生成数、最高分、延迟、usage 和 1-24 次预算前缀曲线。
-6. 查看每个 run 的实际候选图后，记录“AVO 更好 / 暂时无结论 / 没有更好”。
+4. 不同任务默认以 3 路并发执行；同一任务的 `one_shot`、`best_of_n` 和 `avo` 保持串行以保证方法比较公平。
+5. 等待 `one_shot`、`best_of_n` 和 `avo` 全部结束。
+6. 检查 PASS 数、首次 PASS 所需生成数、最高分、延迟、usage 和 1-24 次预算前缀曲线。
+7. 查看每个 run 的实际候选图后，记录“AVO 更好 / 暂时无结论 / 没有更好”。
 
 最坏情况下，每个任务会执行：
 

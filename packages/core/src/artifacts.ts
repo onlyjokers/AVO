@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
-import { mkdir, readFile, rename, stat, unlink, writeFile } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { mkdir, readFile, readdir, rename, stat, unlink, writeFile } from "node:fs/promises";
+import { basename, dirname, join } from "node:path";
 import { artifactSchema, type Artifact } from "@avo/contracts";
 import { fileTypeFromBuffer } from "file-type";
 
@@ -82,5 +82,27 @@ export class ArtifactStore {
   async size(id: string) {
     const { path } = await this.get(id);
     return (await stat(path)).size;
+  }
+
+  async listIds() {
+    const root = join(this.dataDir, "blobs", "sha256");
+    const prefixes = await readdir(root, { withFileTypes: true }).catch(() => []);
+    const ids: string[] = [];
+    for (const prefix of prefixes.filter((entry) => entry.isDirectory())) {
+      const files = await readdir(join(root, prefix.name));
+      for (const file of files.filter((name) => /^[a-f0-9]{64}\.json$/.test(name))) {
+        ids.push(`sha256:${file.slice(0, 64)}`);
+      }
+    }
+    return ids.sort();
+  }
+
+  async quarantine(id: string, batchId: string) {
+    const { artifact, path } = await this.get(id);
+    const target = join(this.dataDir, "quarantine", batchId);
+    await mkdir(target, { recursive: true });
+    await rename(path, join(target, basename(path)));
+    await rename(this.metadataPath(artifact.sha256), join(target, `${artifact.sha256}.json`));
+    return target;
   }
 }

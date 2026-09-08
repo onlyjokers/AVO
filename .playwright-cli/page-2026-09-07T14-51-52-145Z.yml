@@ -1,0 +1,102 @@
+- main [ref=f1e2]:
+  - 'heading "华为测试4: five-arm AVO ablation" [level=1] [ref=f1e3]'
+  - paragraph [ref=f1e4]: One task, one run per arm. All Main / Verifier / Supervisor calls use 78code gpt-6-astra. Image model unchanged. Confidence is not a quality score.
+  - paragraph [ref=f1e5]: "Controls hash: d6528eb5b0a310ce1d25a5784d5b592492a8406fd9892100e445735502336ceb"
+  - table [ref=f1e7]:
+    - rowgroup [ref=f1e8]:
+      - row [ref=f1e9]:
+        - columnheader "Arm" [ref=f1e10]
+        - columnheader "Status" [ref=f1e11]
+        - columnheader "Candidates" [ref=f1e12]
+        - columnheader "Image calls*" [ref=f1e13]
+        - columnheader "SVG candidates" [ref=f1e14]
+        - columnheader "Minutes" [ref=f1e15]
+        - columnheader "Main tokens" [ref=f1e16]
+        - columnheader "Reason" [ref=f1e17]
+    - rowgroup [ref=f1e18]:
+      - row [ref=f1e19]:
+        - cell "0 Baseline" [ref=f1e20]
+        - cell "budget_exhausted" [ref=f1e21]
+        - cell "6" [ref=f1e22]
+        - cell "6" [ref=f1e23]
+        - cell "0" [ref=f1e24]
+        - cell "106.2" [ref=f1e25]
+        - cell "3,907,930" [ref=f1e26]
+        - cell "wall_time_budget_exhausted" [ref=f1e27]
+      - row [ref=f1e28]:
+        - cell "1 SVG" [ref=f1e29]
+        - cell "finalization_pending" [ref=f1e30]
+        - cell "5" [ref=f1e31]
+        - cell "5" [ref=f1e32]
+        - cell "0" [ref=f1e33]
+        - cell "-" [ref=f1e34]
+        - cell "3,111,839" [ref=f1e35]
+        - cell "finalization_pending" [ref=f1e36]
+      - row [ref=f1e37]:
+        - cell "2 SVG + iterative" [ref=f1e38]
+        - cell "budget_exhausted" [ref=f1e39]
+        - cell "6" [ref=f1e40]
+        - cell "6" [ref=f1e41]
+        - cell "0" [ref=f1e42]
+        - cell "110.2" [ref=f1e43]
+        - cell "3,410,598" [ref=f1e44]
+        - cell "wall_time_budget_exhausted" [ref=f1e45]
+      - row [ref=f1e46]:
+        - cell "3 SVG + copilot" [ref=f1e47]
+        - cell "budget_exhausted" [ref=f1e48]
+        - cell "3" [ref=f1e49]
+        - cell "3" [ref=f1e50]
+        - cell "0" [ref=f1e51]
+        - cell "111.6" [ref=f1e52]
+        - cell "4,263,930" [ref=f1e53]
+        - cell "wall_time_budget_exhausted" [ref=f1e54]
+      - row [ref=f1e55]:
+        - cell "4 SVG + iterative + copilot" [ref=f1e56]
+        - cell "budget_exhausted" [ref=f1e57]
+        - cell "7" [ref=f1e58]
+        - cell "7" [ref=f1e59]
+        - cell "0" [ref=f1e60]
+        - cell "114.5" [ref=f1e61]
+        - cell "3,970,033" [ref=f1e62]
+        - cell "wall_time_budget_exhausted" [ref=f1e63]
+  - paragraph [ref=f1e64]: "*Successful provider candidates, excluding transport retries and ambiguous outcomes."
+  - heading "Blinded final comparison" [level=2] [ref=f1e65]
+  - generic [ref=f1e66]: "{ \"status\": \"identical_final_images\", \"arms_with_identical_final\": [ 0, 2, 3, 4 ], \"distinct_final_images\": 1, \"is_original_source\": true, \"note\": \"Artifact identity establishes equality; no paid model comparison was made. Missing finals are not assigned a quality rank.\" }"
+  - heading "Source" [level=2] [ref=f1e67]
+  - img "Original source" [ref=f1e68]
+  - generic [ref=f1e69]:
+    - generic [ref=f1e70]:
+      - heading "0 Baseline" [level=2] [ref=f1e71]
+      - img "Arm 0 final image" [ref=f1e72]
+      - paragraph [ref=f1e73]: 当前实际提供的 finalist 只有该节点；已将其与 Source、密封参考直接对照。该图道路从近景至消失点整体笔直、路缘透视连续，左右前景山体分别向中央下降，谷地通道开放，没有前景两山融合封口。夕阳方向与路面暖色反光一致，天空具有连续暖色渐变；道路、岩石和植被纹理保留，与 Source 相比未见可见画质下降或新增明显 AI 伪影。相比密封参考，其两侧山体框景和引导力度较弱，太阳核心仍偏小、偏亮，谷地柔和体积辉光不足，因此选择不代表目标已完全实现；但所展示候选中，该节点保住了直路、前景分离及真实材质等优先约束。
+      - paragraph [ref=f1e74]: "{\"avo_select_parent\":6,\"avo_view_image\":11,\"avo_set_prompt\":6,\"avo_generate_image\":6,\"avo_evaluate_draft\":9,\"avo_select_generation_inputs\":4,\"avo_get_state\":1,\"avo_abandon_attempt\":4,\"avo_list_image_pool\":1}"
+      - link "Run history" [ref=f1e75] [cursor=pointer]:
+        - /url: http://127.0.0.1:4311/runs/run-b4fa01ee-6eb2-46a1-8b32-289427566cca
+    - generic [ref=f1e76]:
+      - heading "1 SVG" [level=2] [ref=f1e77]
+      - paragraph [ref=f1e78]: No final image was selected. This arm must not be treated as a quality win.
+      - paragraph
+      - paragraph [ref=f1e79]: "{\"avo_select_parent\":4,\"avo_view_image\":9,\"avo_select_generation_inputs\":4,\"avo_set_prompt\":5,\"avo_generate_image\":5,\"avo_evaluate_draft\":10,\"avo_decline_pending_decision\":1,\"avo_abandon_attempt\":2}"
+      - link "Run history" [ref=f1e80] [cursor=pointer]:
+        - /url: http://127.0.0.1:4311/runs/run-6587cc6e-08a8-48b1-b5ec-11eef638c812
+    - generic [ref=f1e81]:
+      - heading "2 SVG + iterative" [level=2] [ref=f1e82]
+      - img "Arm 2 final image" [ref=f1e83]
+      - paragraph [ref=f1e84]: 候选为唯一正式 finalist，且直接满足核心硬约束：道路从前景到地平线保持笔直且连续，两侧山体轮廓清晰分离，没有融合成一片；道路与两侧地形共同形成稳定的中央引导关系。夕阳方向明确，天空和道路有自然暖色反光与柔和光晕，光感真实不过曝。山脊、岩石、植被及道路纹理整体连贯，未见明显结构错乱、边缘融化或质量下降。相较密封参考，山谷式引导和太阳宽域辉光略弱，但没有牺牲真实感或硬约束，因此该节点是当前最符合意图的 Final。
+      - paragraph [ref=f1e85]: "{\"avo_select_parent\":7,\"avo_view_image\":14,\"avo_set_prompt\":3,\"avo_iterative_action\":9,\"avo_evaluate_draft\":10,\"avo_decline_pending_decision\":2,\"avo_svg_tools\":6,\"avo_svg_open\":2,\"avo_abandon_attempt\":3,\"avo_svg_edit\":3}"
+      - link "Run history" [ref=f1e86] [cursor=pointer]:
+        - /url: http://127.0.0.1:4311/runs/run-e7b6188e-2ca6-43bb-9815-3b3ee498a716
+    - generic [ref=f1e87]:
+      - heading "3 SVG + copilot" [level=2] [ref=f1e88]
+      - img "Arm 3 final image" [ref=f1e89]
+      - paragraph [ref=f1e90]: 直接比较全部四张候选后，选择 x0。它的道路从近景到消失点保持笔直，左右前景山体之间有明确的开放谷地；夕阳暖光、路面反射和天空渐变自然，路面细颗粒及岩石植被也最接近真实摄影。x1 的两侧山坡汇聚和框景确实更明确，但近景路面已出现不自然的虫纹状、浮雕状纹理；x2 强化橙色光路的同时进一步凸显该纹理，x3 虽降低橙色浓度、提亮暗部，却使这种遍布路面的异常纹理更加显眼，植被也更有描绘感。后三者的构图收益不足以抵消真实性与画质硬约束上的损失。x0 的山体引导感和太阳辉光尺度仍不及参考，但已有自然光感与连续辉光，在不得以目标接近牺牲真实性的前提下，是更稳妥的最终选择。
+      - paragraph [ref=f1e91]: "{\"avo_select_parent\":6,\"avo_view_image\":11,\"avo_update_copilot_plan\":5,\"avo_set_prompt\":3,\"avo_select_generation_inputs\":3,\"avo_generate_image\":3,\"avo_evaluate_draft\":9,\"avo_get_state\":1,\"avo_submit_candidate\":3}"
+      - link "Run history" [ref=f1e92] [cursor=pointer]:
+        - /url: http://127.0.0.1:4311/runs/run-416899ce-2822-43e2-a05f-ecd789d9fe1d
+    - generic [ref=f1e93]:
+      - heading "4 SVG + iterative + copilot" [level=2] [ref=f1e94]
+      - img "Arm 4 final image" [ref=f1e95]
+      - paragraph [ref=f1e96]: 候选图整体最符合当前意图：太阳周围有自然渐变的暖色辉光，并向道路和谷地扩散；左右前景山体轮廓独立、中央谷地保持开放，坡面与道路共同形成明确的汇聚引导线。道路从近景到地平线保持笔直且单一消失点，路面反光增强了光感。山体、草地、岩石和道路纹理整体自然连续，未见明显结构融化、重复纹理或几何伪影；画面虽偏暗且太阳核心略小，但在真实度、质量保持和构图几何稳定之间取得了最佳平衡。
+      - paragraph [ref=f1e97]: "{\"avo_select_parent\":5,\"avo_view_image\":14,\"avo_update_copilot_plan\":12,\"avo_set_prompt\":3,\"avo_iterative_action\":13,\"avo_evaluate_draft\":8,\"avo_abandon_attempt\":4,\"avo_svg_tools\":1,\"avo_svg_open\":2}"
+      - link "Run history" [ref=f1e98] [cursor=pointer]:
+        - /url: http://127.0.0.1:4311/runs/run-85b7f449-d2fc-4192-bc26-8500c122a222

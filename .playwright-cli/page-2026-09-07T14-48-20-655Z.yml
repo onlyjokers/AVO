@@ -1,0 +1,79 @@
+- main [ref=e2]:
+  - heading "华为测试4：候选证据，不是最终成图" [level=1] [ref=e3]
+  - paragraph [ref=e4]: 0、2、3、4 组的 Final 均为原图；1 组最终选择仍失败。所有 SVG 候选计数为 0。不能从这次单任务、单次运行推断某种优化普遍有效或无效。
+  - paragraph [ref=e5]: 第 3 组曾提交 3 个版本，但最终比较因路面纹理与摄影真实感问题选回 x0。下方保留每组最后生成的候选与全部历史供人工检查；未通过流程的候选没有被补选为 Final。
+  - paragraph [ref=e6]: Verifier 单次请求总上限为 360 秒。搜索配置为 90 分钟，但在途请求、收尾和一次统一的仅最终选择重试使实际耗时超过此值。重试没有增加生成次数或 Main tokens。
+  - paragraph [ref=e7]:
+    - link "Final 报告" [ref=e8] [cursor=pointer]:
+      - /url: report.html
+    - text: ·
+    - link "原始结果" [ref=e9] [cursor=pointer]:
+      - /url: results.json
+    - text: ·
+    - link "收尾重试记录" [ref=e10] [cursor=pointer]:
+      - /url: finalization-recovery.json
+  - generic [ref=e11]:
+    - heading "0. Baseline" [level=2] [ref=e12]
+    - paragraph [ref=e13]: "budget_exhausted; candidates 6; comparisons 4; commits 0; SVG candidates 0; failed evaluation calls 5. Final: x0."
+    - heading "Last generated candidate, not Final" [level=3] [ref=e14]
+    - 'figure "draft-0d567a9b-b8e3-4912-a886-81783f18d8b2; committed version: none. Candidate evidence, NOT the Final." [ref=e15]':
+      - img "Arm 0 candidate" [ref=e16]
+      - group [ref=e18]:
+        - generic "Evaluation feedback" [ref=e19] [cursor=pointer]
+    - group [ref=e20]:
+      - generic "All 6 candidates" [ref=e21] [cursor=pointer]
+    - paragraph [ref=e22]:
+      - link "完整 Run 历史" [ref=e23] [cursor=pointer]:
+        - /url: http://127.0.0.1:4311/runs/run-b4fa01ee-6eb2-46a1-8b32-289427566cca
+  - generic [ref=e24]:
+    - heading "1. SVG" [level=2] [ref=e25]
+    - paragraph [ref=e26]: "finalization_pending; candidates 5; comparisons 1; commits 0; SVG candidates 0; failed evaluation calls 9. Final: not selected."
+    - heading "Last generated candidate, not Final" [level=3] [ref=e27]
+    - 'figure "draft-25cec782-2668-408d-90ae-fe1388005fe7; committed version: none. Candidate evidence, NOT the Final." [ref=e28]':
+      - img "Arm 1 candidate" [ref=e29]
+      - group [ref=e31]:
+        - generic "Evaluation feedback" [ref=e32] [cursor=pointer]
+    - group [ref=e33]:
+      - generic "All 5 candidates" [ref=e34] [cursor=pointer]
+    - paragraph [ref=e35]:
+      - link "完整 Run 历史" [ref=e36] [cursor=pointer]:
+        - /url: http://127.0.0.1:4311/runs/run-6587cc6e-08a8-48b1-b5ec-11eef638c812
+  - generic [ref=e37]:
+    - heading "2. SVG + iterative" [level=2] [ref=e38]
+    - paragraph [ref=e39]: "budget_exhausted; candidates 6; comparisons 5; commits 0; SVG candidates 0; failed evaluation calls 5. Final: x0."
+    - heading "Last generated candidate, not Final" [level=3] [ref=e40]
+    - 'figure "draft-f37f5064-511e-42c9-84b7-a053dd82a8b6; committed version: none. Candidate evidence, NOT the Final." [ref=e41]':
+      - img "Arm 2 candidate" [ref=e42]
+      - group [ref=e44]:
+        - generic "Evaluation feedback" [ref=e45] [cursor=pointer]
+    - group [ref=e46]:
+      - generic "All 6 candidates" [ref=e47] [cursor=pointer]
+    - paragraph [ref=e48]:
+      - link "完整 Run 历史" [ref=e49] [cursor=pointer]:
+        - /url: http://127.0.0.1:4311/runs/run-e7b6188e-2ca6-43bb-9815-3b3ee498a716
+  - generic [ref=e50]:
+    - heading "3. SVG + copilot" [level=2] [ref=e51]
+    - paragraph [ref=e52]: "budget_exhausted; candidates 3; comparisons 3; commits 3; SVG candidates 0; failed evaluation calls 6. Final: x0."
+    - heading "Last generated candidate, not Final" [level=3] [ref=e53]
+    - 'figure "draft-3bc72cc5-baa6-4984-b5ff-9c208686cdf1; committed version: 3. Candidate evidence, NOT the Final." [ref=e54]':
+      - img "Arm 3 candidate" [ref=e55]
+      - group [ref=e57]:
+        - generic "Evaluation feedback" [ref=e58] [cursor=pointer]
+    - group [ref=e59]:
+      - generic "All 3 candidates" [ref=e60] [cursor=pointer]
+    - paragraph [ref=e61]:
+      - link "完整 Run 历史" [ref=e62] [cursor=pointer]:
+        - /url: http://127.0.0.1:4311/runs/run-416899ce-2822-43e2-a05f-ecd789d9fe1d
+  - generic [ref=e63]:
+    - heading "4. SVG + iterative + copilot" [level=2] [ref=e64]
+    - paragraph [ref=e65]: "budget_exhausted; candidates 7; comparisons 7; commits 0; SVG candidates 0; failed evaluation calls 1. Final: x0."
+    - heading "Last generated candidate, not Final" [level=3] [ref=e66]
+    - 'figure "draft-3ddb8bbc-e545-4cfe-8d59-d5799c7b0a14; committed version: none. Candidate evidence, NOT the Final." [ref=e67]':
+      - img "Arm 4 candidate" [ref=e68]
+      - group [ref=e70]:
+        - generic "Evaluation feedback" [ref=e71] [cursor=pointer]
+    - group [ref=e72]:
+      - generic "All 7 candidates" [ref=e73] [cursor=pointer]
+    - paragraph [ref=e74]:
+      - link "完整 Run 历史" [ref=e75] [cursor=pointer]:
+        - /url: http://127.0.0.1:4311/runs/run-85b7f449-d2fc-4192-bc26-8500c122a222

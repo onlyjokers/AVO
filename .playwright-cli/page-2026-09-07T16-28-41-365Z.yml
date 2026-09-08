@@ -1,0 +1,13 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - link "AVO 首页" [ref=e5] [cursor=pointer]:
+      - /url: /
+      - generic [ref=e6]: A
+      - generic [ref=e7]: AVO 图像编辑实验室
+    - navigation [ref=e8]:
+      - link "任务" [ref=e9] [cursor=pointer]:
+        - /url: /
+      - link "实验" [ref=e15] [cursor=pointer]:
+        - /url: /benchmarks
+  - main [ref=e18]:
+    - generic [ref=e19]: 正在加载
